@@ -3,11 +3,10 @@ import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 import prepare_stocks_dataset as prep
-import clean_stocks_dataset as cln
 import os.path
 import sys
 
-def predictor(fname):
+def predictor(fname, nepochs):
 
     # clean the dataset file and prepare the feature vectors
     data = clean_and_prepare(fname)
@@ -24,14 +23,18 @@ def predictor(fname):
     plt.ion()
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
-    line1, = ax1.plot(y_test)       # shows the true values of S&P index returns
-    line2, = ax1.plot(y_test * 1.4) # shows the predicted values
+    plt.xlabel('Minutes')
+    plt.ylabel('S&P Returns - Percent Change')
+    ax1.plot(y_test)       # shows the true values of S&P index returns
+    line2, = ax1.plot(y_test * 1.4) # shows ideal predicted values
+
     plt.show()
 
     # Number of epochs and batch size to train the neural network
-    epochs = 10
+    epochs = int(nepochs)
     batch_size = 256
 
+    # Training
     for e in range(epochs):
 
         # Shuffle training data
@@ -53,9 +56,11 @@ def predictor(fname):
                 pred = net.run(out, feed_dict={X: X_test})
                 line2.set_ydata(pred)
                 plt.title('Epoch ' + str(e) + ', Batch ' + str(i))
-                file_name = 'img/epoch_' + str(e) + '_batch_' + str(i) + '.png'
+                # plt.show()
+                # plt.pause(0.01)
+
+                # file_name = 'img/epoch_' + str(e) + '_batch_' + str(i) + '.png'
                 # plt.savefig(file_name)
-                plt.pause(0.01)
 
     # Prediction
     pred = net.run(out, feed_dict={X: X_test})
@@ -74,17 +79,23 @@ def predictor(fname):
     plt.ioff()
     plt.scatter(pred, y_test, color='blue', label='Data')
     plt.xlabel('Predicted S&P Returns')
-    plt.xlabel('True S&P Returns')
+    plt.ylabel('True S&P Returns')
     plt.show()
     print('SSE : ', sse_final)
 
 def clean_and_prepare(fname):
-    # clean original file and store the clean data in a new file 'data_stocks_clean.csv'
+    '''
+    clean original file and store the clean data in a new file 'data_stocks.csv'
+    :param fname: dataset file name(.csv)
+    :return: data: pandas data frame
+    '''
 
-    base_name = fname.split(",")[0]
     if not os.path.exists(fname):
-        print('Please make sure the dataset file is in the same directory as code or provide the absolute path')
+        print('Please make sure the dataset file is in the same directory as code '
+              'or provide the absolute path')
         sys.exit(0)
+
+    base_name = fname.split(".")[0]
 
     # check if data preparation is already complete
     if not os.path.exists(base_name + '_prepared.csv'):
@@ -120,9 +131,9 @@ def get_data_split(data):
 
     # Build X and y
     X_train = data_train[:, 1:]
-    y_train = data_train[:, 0]
+    y_train = data_train[:, 0]      # 1st column has labels
     X_test = data_test[:, 1:]
-    y_test = data_test[:, 0]
+    y_test = data_test[:, 0]        # 1st column has labels
 
     return X_train, y_train, X_test, y_test
 
@@ -198,10 +209,11 @@ def build_computation_graph(data):
 
 if __name__ == '__main__':
 
-    if len(sys.argv) != 1:
-        print('Usage: \npython script_name.py <dataset-file>\n')
+    if len(sys.argv) != 3:
+        print('Usage: \npython script_name.py <dataset-file> <#epochs_training>\n')
         sys.exit(0)
 
     ds_fname = sys.argv[1]
-    predictor(ds_fname)
+    epochs = sys.argv[2]
+    predictor(ds_fname, epochs)
 

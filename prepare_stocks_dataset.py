@@ -12,6 +12,8 @@ def get_features(filename):
 
     # cleaning
     df = pd.read_csv(filename)
+
+    # only retain stock prices for top 5 companies, drop remaining 495
     drop_features = ["DATE", "NASDAQ.AAL", "NASDAQ.ADBE", "NASDAQ.ADI", "NASDAQ.ADP", "NASDAQ.ADSK", "NASDAQ.AKAM",
                      "NASDAQ.ALXN", "NASDAQ.AMAT", "NASDAQ.AMD", "NASDAQ.AMGN", "NASDAQ.ATVI", "NASDAQ.AVGO",
                      "NASDAQ.BBBY", "NASDAQ.BIIB", "NASDAQ.CA", "NASDAQ.CBOE", "NASDAQ.CELG", "NASDAQ.CERN",
@@ -83,7 +85,7 @@ def get_features(filename):
 
     # preparation
     for col_name in df.columns.values:
-        df[col_name+'_M_RET'] = df[col_name].pct_change(1)
+        df[col_name + '_M_RET'] = df[col_name].pct_change(1)
         df[col_name + '_5M_RET'] = df[col_name].pct_change(5)
         df[col_name + '_5M_AVG'] = df[col_name+'_M_RET'].rolling(window=5, center=False).mean()
         df[col_name + '_LAGGED'] = df[col_name+'_M_RET'].shift(1)
@@ -95,12 +97,3 @@ def get_features(filename):
     # print('Columns: ', df.columns.values)
 
     return df
-
-# Testing preparation module:
-
-# data = pd.read_csv('data_stocks_clean.csv')
-# # prepare data
-# data = derive_features(data)
-
-
-

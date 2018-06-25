@@ -5,7 +5,7 @@ def clean(filename):
     Drops all the columns except the 5 columns defining stock prices for
     Microsoft, Amazon, Google, Apple, Facebook.
     :param filename: Name of file containing stock prices of all S&P 500 companies.
-    :return: Store the clean data in file data_stocks_clean.csv
+    :return: Store the clean data in file data_stocks.csv
     '''
 
     fname = filename.split(".")[0]
