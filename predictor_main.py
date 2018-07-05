@@ -6,7 +6,7 @@ import data_prep as prep
 import os.path
 import sys
 
-def predictor(fname, nepochs):
+def predictor(fname, nepochs, debug, debug_epoch):
 
     # clean the dataset file and prepare the feature vectors
     data = clean_and_prepare(fname)
@@ -20,7 +20,6 @@ def predictor(fname, nepochs):
     net.run(tf.global_variables_initializer())
 
     # Plot how the prediction should look like ideally
-    plt.ion()                       # interactive plot
     fig = plt.figure(1)
     ax1 = fig.add_subplot(111)      # 1st plot in grid with 1 row and 1 column
     plt.xlabel('Minutes')
@@ -28,7 +27,7 @@ def predictor(fname, nepochs):
     plt.title('Ideal prediction')
     plt.legend()
     line1, = ax1.plot(y_test, label='Ground Truth')       # shows the true values of S&P index returns
-    line2, = ax1.plot(y_test * 1.4, label='Ideal Prediction') # shows ideal predicted values
+    line2, = ax1.plot(y_test * 1.4, label='Model Prediction') # shows ideal predicted values
     plt.savefig('img/ideal_pred.png')
 
     # Number of epochs and batch size to train the neural network
@@ -50,28 +49,35 @@ def predictor(fname, nepochs):
             start = i * batch_size
             batch_x = X_train[start:start + batch_size]
             batch_y = y_train[start:start + batch_size]
+
             # Run optimizer with batch
             net.run(opt, feed_dict={X: batch_x, Y: batch_y})
 
-            # Show progress
-            if np.mod(i, 25) == 0:
-                # Prediction
+        # Show progress of current model on test dataset if requested by the user
+        if debug is 'on':
+            if e % debug_epoch == 0:         # after every 25 epochs
+
+                # Prediction on test
                 pred = net.run(out, feed_dict={X: X_test})
                 line2.set_ydata(pred)
-                plt.title('Epoch ' + str(e) + ', Batch ' + str(i))
-                # plt.show()
-                # plt.pause(0.01)
+                plt.xlabel('Minutes')
+                plt.ylabel('S&P Returns - Percent Change')
+                plt.title('Model fitting on Epoch ' + str(e))
+                plt.legend()
 
-                # file_name = 'img/epoch_' + str(e) + '_batch_' + str(i) + '.png'
+                # file_name = 'img/epoch_' + str(e) + '.png'
                 # plt.savefig(file_name)
 
-    # Prediction
+                plt.show()
+                # plt.pause(0.01)
+
+    # Model prediction on fully trained model
     pred = net.run(out, feed_dict={X: X_test})
     line2.set_ydata(pred)
-    plt.title('Epoch ' + str(e) + ', Batch ' + str(i))
     plt.xlabel('Minutes')
     plt.ylabel('S&P Returns - Percent Change')
-    file_name = 'img/epoch_' + str(e) + '_batch_' + str(i) + '.png'
+    plt.title('Model fitting on Epoch ' + str(e))
+    file_name = 'img/final_pred.png'
     plt.savefig(file_name)
 
     # Print final SSE after Training
@@ -79,11 +85,12 @@ def predictor(fname, nepochs):
 
     # plot the difference between predicted and actual S&P returns
     plt.figure(2)
-    plt.ioff()
     plt.scatter(pred, y_test, color='blue', label='Data')
     plt.xlabel('Predicted S&P Returns')
     plt.ylabel('True S&P Returns')
-    plt.show()
+    plt.title('Difference between ground truth and predicted output')
+    plt.savefig('Pred_error')
+
     print('SSE : ', sse_final)
 
 def clean_and_prepare(fname):
@@ -134,9 +141,9 @@ def get_data_split(data):
 
     # Build X and y
     X_train = data_train[:, 1:]
-    y_train = data_train[:, 0]      # 1st column has labels
+    y_train = data_train[:, 0]      # 0th column has labels
     X_test = data_test[:, 1:]
-    y_test = data_test[:, 0]        # 1st column has labels
+    y_test = data_test[:, 0]        # 0th column has labels
 
     return X_train, y_train, X_test, y_test
 
@@ -212,11 +219,18 @@ def build_computation_graph(data):
 
 if __name__ == '__main__':
 
-    if len(sys.argv) != 3:
-        print('Usage: \npython script_name.py <dataset-file> <#epochs_training>\n')
+    if len(sys.argv) != 3 or len(sys.argv) != 4:
+        print('Usage: \npython script_name.py <dataset-file> <num_training_epochs> [pause_at_epoch]\n')
         sys.exit(0)
 
     ds_fname = sys.argv[1]
     epochs = sys.argv[2]
-    predictor(ds_fname, epochs)
+    if len(sys.argv) == 3:
+        debug = 'off'
+        debug_epoch = 0
+    else:
+        debug = 'on'
+        debug_epoch = sys.argv[3]
+
+    predictor(ds_fname, epochs, debug, debug_epoch)
 
