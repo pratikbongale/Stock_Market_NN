@@ -2,7 +2,7 @@ import pandas as pd
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
-import prepare_stocks_dataset as prep
+import data_prep as prep
 import os.path
 import sys
 
@@ -19,20 +19,23 @@ def predictor(fname, nepochs):
     # Initialize all vairables defined with tesorflow
     net.run(tf.global_variables_initializer())
 
-    # Setup interactive plot for showing progress
-    plt.ion()
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111)
+    # Plot how the prediction should look like ideally
+    plt.ion()                       # interactive plot
+    fig = plt.figure(1)
+    ax1 = fig.add_subplot(111)      # 1st plot in grid with 1 row and 1 column
     plt.xlabel('Minutes')
     plt.ylabel('S&P Returns - Percent Change')
-    ax1.plot(y_test)       # shows the true values of S&P index returns
-    line2, = ax1.plot(y_test * 1.4) # shows ideal predicted values
-
-    plt.show()
+    plt.title('Ideal prediction')
+    plt.legend()
+    line1, = ax1.plot(y_test, label='Ground Truth')       # shows the true values of S&P index returns
+    line2, = ax1.plot(y_test * 1.4, label='Ideal Prediction') # shows ideal predicted values
+    plt.savefig('img/ideal_pred.png')
 
     # Number of epochs and batch size to train the neural network
     epochs = int(nepochs)
-    batch_size = 256
+    batch_size = 256        # Online training
+
+    e, i = 0
 
     # Training
     for e in range(epochs):
@@ -99,7 +102,7 @@ def clean_and_prepare(fname):
 
     # check if data preparation is already complete
     if not os.path.exists(base_name + '_prepared.csv'):
-        # clean dataset and compute new features to be fed to Neural Network
+        # only retain the data for top 5 companies and compute appropriate features
         data = prep.get_features(fname)
     else:
         data = pd.read_csv(base_name + '_prepared.csv')
