@@ -20,7 +20,7 @@ def predictor(fname, nepochs, debug, debug_epoch):
     net.run(tf.global_variables_initializer())
 
     # Plot how the prediction should look like ideally
-    fig = plt.figure(1)
+    fig = plt.figure()
     ax1 = fig.add_subplot(111)      # 1st plot in grid with 1 row and 1 column
     plt.xlabel('Minutes')
     plt.ylabel('S&P Returns - Percent Change')
@@ -28,13 +28,14 @@ def predictor(fname, nepochs, debug, debug_epoch):
     plt.legend()
     line1, = ax1.plot(y_test, label='Ground Truth')       # shows the true values of S&P index returns
     line2, = ax1.plot(y_test * 1.4, label='Model Prediction') # shows ideal predicted values
+
+    if not os.path.isdir('img'):
+        os.makedirs('img')
     plt.savefig('img/ideal_pred.png')
 
     # Number of epochs and batch size to train the neural network
     epochs = int(nepochs)
     batch_size = 256        # Online training
-
-    e, i = 0
 
     # Training
     for e in range(epochs):
@@ -60,6 +61,9 @@ def predictor(fname, nepochs, debug, debug_epoch):
                 # Prediction on test
                 pred = net.run(out, feed_dict={X: X_test})
                 line2.set_ydata(pred)
+                fig.canvas.draw()
+                fig.canvas.flush_events()
+
                 plt.xlabel('Minutes')
                 plt.ylabel('S&P Returns - Percent Change')
                 plt.title('Model fitting on Epoch ' + str(e))
@@ -76,7 +80,7 @@ def predictor(fname, nepochs, debug, debug_epoch):
     line2.set_ydata(pred)
     plt.xlabel('Minutes')
     plt.ylabel('S&P Returns - Percent Change')
-    plt.title('Model fitting on Epoch ' + str(e))
+    plt.title('Model fitting Complete')
     file_name = 'img/final_pred.png'
     plt.savefig(file_name)
 
@@ -89,7 +93,7 @@ def predictor(fname, nepochs, debug, debug_epoch):
     plt.xlabel('Predicted S&P Returns')
     plt.ylabel('True S&P Returns')
     plt.title('Difference between ground truth and predicted output')
-    plt.savefig('Pred_error')
+    plt.savefig('img/pred_error.png')
 
     print('SSE : ', sse_final)
 
@@ -219,7 +223,7 @@ def build_computation_graph(data):
 
 if __name__ == '__main__':
 
-    if len(sys.argv) != 3 or len(sys.argv) != 4:
+    if len(sys.argv) < 3:
         print('Usage: \npython script_name.py <dataset-file> <num_training_epochs> [pause_at_epoch]\n')
         sys.exit(0)
 
@@ -230,7 +234,7 @@ if __name__ == '__main__':
         debug_epoch = 0
     else:
         debug = 'on'
-        debug_epoch = sys.argv[3]
+        debug_epoch = int(sys.argv[3])
 
     predictor(ds_fname, epochs, debug, debug_epoch)
 
