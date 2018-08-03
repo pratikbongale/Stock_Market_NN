@@ -21,7 +21,7 @@ def derive_features(df):
 
 # Testing this module:
 
-# data = pd.read_csv('data_stocks_clean.csv')
+# data = pd.read_csv('data_stocks.csv')
 # # prepare data
 # data = derive_features(data)
 

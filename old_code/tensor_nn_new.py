@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import top_5_data_prep as prep
 
 # Import data
-data = pd.read_csv('data_stocks_clean.csv')
+data = pd.read_csv('data_stocks.csv')
 
 # prepare data
 data = prep.derive_features(data)
