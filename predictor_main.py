@@ -20,18 +20,27 @@ def predictor(fname, nepochs, debug, debug_epoch):
     net.run(tf.global_variables_initializer())
 
     # Plot how the prediction should look like ideally
+    x = np.linspace(0, y_test.size, y_test.size)        # plot minutes on x axis
+    plt.ion()
     fig = plt.figure()
-    ax1 = fig.add_subplot(111)      # 1st plot in grid with 1 row and 1 column
-    plt.xlabel('Minutes')
-    plt.ylabel('S&P Returns - Percent Change')
-    plt.title('Ideal prediction')
-    plt.legend()
-    line1, = ax1.plot(y_test, label='Ground Truth')       # shows the true values of S&P index returns
-    line2, = ax1.plot(y_test * 1.4, label='Model Prediction') # shows ideal predicted values
+    ax = fig.add_subplot(111)      # 1st plot in grid with 1 row and 1 column
+    line1, = ax.plot(y_test, 'b-', label='Ground Truth')
+    line2, = ax.plot(y_test * 1.4, 'r-', label='Ideal fitting')
+    ax.set_xlabel('Minutes')
+    ax.set_ylabel('S&P Returns - Percent Change')
+    ax.set_title('Ideal prediction')
+    ax.legend()
+    ax.imshow()
+    # fig.canvas.draw()
+
+    # plt.plot(y_test, label='Ground Truth', color='blue')       # shows the true values of S&P index returns
+    # plt.plot(y_test * 1.4, label='Model Prediction', color='black') # shows ideal predicted values
+    # plt.legend()
 
     if not os.path.isdir('img'):
         os.makedirs('img')
     plt.savefig('img/ideal_pred.png')
+    plt.clf()
 
     # Number of epochs and batch size to train the neural network
     epochs = int(nepochs)
@@ -60,10 +69,10 @@ def predictor(fname, nepochs, debug, debug_epoch):
 
                 # Prediction on test
                 pred = net.run(out, feed_dict={X: X_test})
-                line2.set_ydata(pred)
-                fig.canvas.draw()
-                fig.canvas.flush_events()
 
+                plt.clf()
+                plt.plot(y_test, label='Ground Truth', color='blue')
+                plt.plot(pred, label='Model Prediction', color='black')
                 plt.xlabel('Minutes')
                 plt.ylabel('S&P Returns - Percent Change')
                 plt.title('Model fitting on Epoch ' + str(e))
@@ -77,7 +86,10 @@ def predictor(fname, nepochs, debug, debug_epoch):
 
     # Model prediction on fully trained model
     pred = net.run(out, feed_dict={X: X_test})
-    line2.set_ydata(pred)
+
+    plt.clf()
+    plt.plot(y_test, label='Ground Truth', color='blue')
+    plt.plot(pred, label='Model Prediction', color='black')
     plt.xlabel('Minutes')
     plt.ylabel('S&P Returns - Percent Change')
     plt.title('Model fitting Complete')
@@ -88,7 +100,7 @@ def predictor(fname, nepochs, debug, debug_epoch):
     sse_final = net.run(sse, feed_dict={X: X_test, Y: y_test})
 
     # plot the difference between predicted and actual S&P returns
-    plt.figure(2)
+    plt.clf()
     plt.scatter(pred, y_test, color='blue', label='Data')
     plt.xlabel('Predicted S&P Returns')
     plt.ylabel('True S&P Returns')
@@ -130,8 +142,8 @@ def get_data_split(data):
     # Training and test data
     train_start = 0
     train_end = int(np.floor(0.8 * rows))   # 80% of data is training data
-    # test_start = train_end + 1            # remaining is for testing
-    test_start = rows - 100
+    test_start = train_end + 1            # remaining is for testing
+    # test_start = rows - 100
     test_end = rows
     data_train = data[np.arange(train_start, train_end), :]
     data_test = data[np.arange(test_start, test_end), :]

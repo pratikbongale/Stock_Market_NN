@@ -6,7 +6,13 @@ This project uses Neural Networks(built using Tensorflow) to predict whether S&P
 Further details about the project can be found in [this](Extras/Report_Stock_Market_Analysis.pdf) report and [this](Extras/Stock_Market_Prediction.pptx) presentation.
 
 ## Dataset
-Currently the dataset is provided as part of the code. You can look for clean filtered dataset with S&P returns data for top 5 companies in the dataset file [data_stocks.csv](data_stocks.csv). 
+Currently the dataset is provided as part of the code. You can look for clean filtered dataset with S&P returns data and change in stock prices for top 5 companies in the dataset file [data_stocks.csv](data_stocks.csv).
+\
+Each company has the following columns:  
+M_RET: Current returns on <company's> stock prices(per minute)\
+5M_RET: Stock returns 5 minutes before\
+5M_AVG: Average of stock price changes in past 5 minutes\
+LAGGED: Stock price lagged by a minute
 
 Coming soon: I am working on building a online learning model which will pull most recent stock price changes(per minute) using API calls to quandl.com and finance.yahoo.com. 
 
